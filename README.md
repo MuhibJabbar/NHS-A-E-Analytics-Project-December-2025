@@ -47,6 +47,7 @@ A fully trusted, cleaned dataset ready for analytics.
 
 🟡 Gold Layer — KPI Modelling & Analytics
 Gold Views created:
+
 1️⃣ provider_kpis
 
 Total attendances
