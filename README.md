@@ -57,7 +57,7 @@ Why Bronze?
 
 To keep the dataset exactly as it arrives from the source before transformations.
 
-⚪ Silver Layer (Transform + Clean + Validate)
+# ⚪ Silver Layer (Transform + Clean + Validate)
 What happens here?
 
 Creates typed table: Silver.ae_transform
