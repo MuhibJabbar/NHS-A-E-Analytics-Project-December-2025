@@ -1,110 +1,166 @@
-# NHS A-E-Analytics-Project-December 2025
-This project builds an end-to-end SQL Server Data Warehouse for NHS Accident &amp; Emergency (A&amp;E) performance analysis.
+# 🏥 NHS A&E Performance Analytics (Bronze → Silver → Gold) — SQL Server
+This project builds an end-to-end SQL Server analytics pipeline for NHS Accident & Emergency (A&E) performance reporting using a modern layered architecture:
 
-It demonstrates real-world concepts used in NHS, Deloitte, NHS Digital, EY & BI/Data Engineering teams:
+Bronze = Raw CSV ingestion (staging)
 
-Multi-layer data modelling (Bronze/Silver/Gold)
+Silver = Cleaning, datatype conversion, data quality validation
 
-Data quality validation
+Gold = Analytics-ready KPI views for Power BI
 
-Transformations using T-SQL
+The goal is to produce reliable provider-level KPIs, rankings, benchmarking, and pressure metrics that can be used directly in Power BI dashboards.
 
-KPI modelling
+# 🎯 Project Objectives
 
-Window functions, ranking, benchmarking
+✅ Ingest NHS A&E monthly CSV data into SQL Server
+✅ Clean + standardize raw data into typed tables
+✅ Run data quality checks (nulls, duplicates, negatives, logic rules)
+✅ Create analytical views for reporting:
 
-Analytics-ready views for Power BI
+Over 4 hours performance ratio
 
-🟤 Bronze Layer — Raw Ingestion
-Tasks performed:
+Best/Worst provider ranking
 
-Created schemas (Bronze, Silver, Gold)
+National benchmark comparison
 
-Bulk Insert of monthly NHS A&E CSV
+Waiting pressure metrics per 1,000 attendances
 
-Raw table created exactly as source
+✅ Provide outputs that are Power BI ready.
 
-No data modification (true staging zone)
+🛠 Tech Stack
 
-Key skills used:
+SQL Server
 
-BULK INSERT, schema design, raw ingestion patterns
+SSMS (SQL Server Management Studio)
 
-⚪ Silver Layer — Cleaned, Structured, Validated
-Transformations applied:
+T-SQL
 
-✔ Trimmed spaces (LTRIM/RTRIM)
-✔ Converted numeric text → INT using TRY_CAST
-✔ Replaced blanks with NULL (NULLIF)
-✔ Null proofing checks
-✔ Duplicate checks
-✔ Negative value checks
-✔ Logical validation (Over4hrs ≤ Attendances)
+BULK INSERT
 
-Focus:
+TRY_CAST, NULLIF, LTRIM/RTRIM
 
-A fully trusted, cleaned dataset ready for analytics.
+CASE WHEN
 
-🟡 Gold Layer — KPI Modelling & Analytics
-Gold Views created:
+Window functions: AVG() OVER, DENSE_RANK() OVER
 
-1️⃣ provider_kpis
+Power BI (for dashboarding)
 
-Total attendances
+# 🟤 Bronze Layer (Raw Ingestion)
+What happens here?
+
+Creates a raw staging table: Bronze.ae_raw
+
+All columns stored as NVARCHAR to match CSV
+
+Loads CSV using BULK INSERT
+
+Why Bronze?
+
+To keep the dataset exactly as it arrives from the source before transformations.
+
+⚪ Silver Layer (Transform + Clean + Validate)
+What happens here?
+
+Creates typed table: Silver.ae_transform
+
+Cleans values:
+
+trims spaces (LTRIM/RTRIM)
+
+blanks → NULL (NULLIF)
+
+numeric conversion using TRY_CAST
+
+Data Quality Checks Included
+
+✅ Null check for key columns
+✅ Duplicate check using business key (Period, Org_Code, Org_Name)
+✅ Negative values check (invalid for this dataset)
+✅ Logical rule check (Over 4 hours cannot exceed attendances)
+
+# 🟡 Gold Layer (Analytics-ready Views)
+
+Gold contains reporting-ready views designed for Power BI.
+
+✅ 1) Gold.provider_kpis
+
+Core KPI dataset per provider and period:
+
+Total_AE_Attendances
+
+Total_Attendaces_over_4_hours
+
+Total_Emergency_Admissions
+
+Over4hrs_Ratio = % of 4+ hour waits
+
+✅ 2) Gold.providers_Over4hrs_Ratio
+
+Ranks providers per month:
+
+Best_Performance_Rank (lowest ratio)
+
+Worst_Performance_Rank (highest ratio)
+
+✅ 3) Gold.provider_benchmarking
+
+Adds:
+
+Performance_Banding
+
+Excellent (≤ 5)
+
+Good (≤ 10)
+
+Need Improvement (≤ 15)
+
+Critical (> 15)
+
+No Data
+
+National_Average_Over4hrs_Ratio per month using:
+
+AVG(Over4hrs_Ratio) OVER (PARTITION BY Period)
+
+✅ 4) Gold.provider_pressure_metrices
+
+Pressure indicators per provider:
+
+Wait 4–12 hours per 1,000 attendances
+
+Wait 12+ hours per 1,000 attendances
+
+# ▶️ How to Run (SSMS)
+
+Open the SQL script:
+
+``sql/NHS_AE_Dec_2025.sql
+
+Update the CSV path inside BULK INSERT:
+
+FROM 'C:\YourPath\December-2025-CSV.csv'
+
+
+Execute the script in SSMS (top to bottom)
+
+Connect Power BI to the Gold views:
+
+Gold.provider_kpis
+
+Gold.provider_benchmarking
+
+Gold.provider_pressure_metrices
+
+Gold.providers_Over4hrs_Ratio
+
+# Example Query Outputs (Validation)
+Monthly Summary KPI
+
+Total attendances across all providers
 
 Total 4+ hours waits
 
-Emergency admissions
+Monthly % ratio
 
-A&E performance ratio
+Best & Worst Providers
 
-Clean, aggregated table for BI tools
-
-2️⃣ providers_Over4hrs_Ratio
-
-Best / Worst performers
-
-Dense ranking per period
-
-3️⃣ provider_benchmarking
-
-Performance bands
-
-Excellent ≤ 5%
-
-Good ≤ 10%
-
-Need Improvement ≤ 15%
-
-Critical > 15%
-
-National benchmark using window function
-
-Uniform provider comparison
-
-4️⃣ provider_pressure_metrices
-
-4–12 hour waits per 1,000 attendances
-
-12+ hour waits per 1,000 attendances
-
-Severe pressure indicators
-
-🚀 How to Run
-
-Clone the repo
-
-Create schemas:
-
-CREATE SCHEMA Bronze;
-CREATE SCHEMA Silver;
-CREATE SCHEMA Gold;
-
-
-Run Bronze ingestion
-
-Run Silver transformation
-
-Run Gold analytical views
-
-Connect Power BI to Gold views
+DENSE_RANK() per period for provider comparison
